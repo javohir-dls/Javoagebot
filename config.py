@@ -1,3 +1,5 @@
-BOT_TOKEN = "8713752955:AAFXESPsLR7I5XCVkm50y0Ng82CUwlRt7Ks"
+# Bot tokeni
+TOKEN = "8713752955:AAF5UfydbCw3ASECuPfoODKyx30cK7I6Lm4"
+
+# Kanal username
 CHANNEL_ID = "@xushboqovblog"
-INSTAGRAM_URL = "https://instagram.com/javohir.ftbl"
