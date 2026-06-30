@@ -1,4 +1,3 @@
-import os
 import asyncio
 import logging
 from datetime import datetime, date
@@ -9,14 +8,12 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.enums import ChatMemberStatus
 from dateutil.relativedelta import relativedelta
 
+# config.py faylidan import qilamiz
+from config import TOKEN, CHANNEL_ID
+
 # Logging
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = os.getenv("TOKEN")
-if not TOKEN:
-    raise ValueError("TOKEN topilmadi!")
-
-CHANNEL_ID = "@xushboqovblog"
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
@@ -67,7 +64,7 @@ async def check_subs(callback: types.CallbackQuery):
     else:
         await callback.answer("Hali obuna bo'lmagansiz!", show_alert=True)
 
-# Yangilangan handler (aiogram 3.29+)
+# Yangilangan handler (aiogram 3.29+ uslubida)
 @dp.message(F.text.regexp(r"^\d{2}\.\d{2}\.\d{4}$"))
 async def process_date(message: types.Message):
     try:
