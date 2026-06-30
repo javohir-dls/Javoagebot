@@ -1,12 +1,10 @@
-# config.py
+import os
 
-BOT_TOKEN = "8713752955:AAFXESPsLR7I5XCVkm50y0Ng82CUwlRt7Ks"
+# Render'dagi Environment Variables'dan tokenni o'qiymiz
+TOKEN = os.getenv("8713752955:AAFXESPsLR7I5XCVkm50y0Ng82CUwlRt7Ks")
 
-CHANNEL_USERNAME = "@xushboqovblog"
-CHANNEL_URL = "https://t.me/xushboqovblog"
+# Kanal manzili
+CHANNEL_ID = "@xushboqovblog"
 
-INSTAGRAM_USERNAME = "@javohir.ftbl"
+# Instagram manzili (shunchaki ma'lumot uchun)
 INSTAGRAM_URL = "https://instagram.com/javohir.ftbl"
-
-BOT_NAME = "Age Calculator"
-BOT_USERNAME = "@JavoAgeBot"
