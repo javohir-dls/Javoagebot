@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, date
 
 from aiogram import Bot, Dispatcher, types, F
-from aiogram.filters import Command, Regexp
+from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.enums import ChatMemberStatus
 from dateutil.relativedelta import relativedelta
@@ -65,15 +65,15 @@ async def check_subs(callback: types.CallbackQuery):
     if await is_subscribed(callback.from_user.id):
         await callback.message.edit_text("Ajoyib! Endi tug'ilgan sanangizni yozing (DD.MM.YYYY):")
     else:
-        await callback.answer("Siz hali obuna bo'lmagansiz!", show_alert=True)
+        await callback.answer("Hali obuna bo'lmagansiz!", show_alert=True)
 
-@dp.message(Regexp(r"^\d{2}\.\d{2}\.\d{4}$"))
+# Yangilangan handler (aiogram 3.29+)
+@dp.message(F.text.regexp(r"^\d{2}\.\d{2}\.\d{4}$"))
 async def process_date(message: types.Message):
     try:
         bd = datetime.strptime(message.text, "%d.%m.%Y").date()
         today = date.today()
         
-        # Yoshni hisoblash
         delta = relativedelta(today, bd)
         
         # 29-fevral uchun xavfsiz logic
@@ -89,16 +89,13 @@ async def process_date(message: types.Message):
                 next_bd = date(today.year + 1, 3, 1)
         
         days_to_bd = (next_bd - today).days
-        
-        # Haftani aniqlash
         days_uz = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"]
-        birth_weekday = days_uz[bd.weekday()]
         
         res = (
             f"👤 Ism: {message.from_user.full_name}\n"
             f"🎂 Tug'ilgan sana: {message.text}\n"
             f"📅 Yoshingiz: {delta.years} yil, {delta.months} oy, {delta.days} kun\n"
-            f"🗓 Tug'ilgan kun haftasi: {birth_weekday}\n"
+            f"🗓 Tug'ilgan kun haftasi: {days_uz[bd.weekday()]}\n"
             f"🎉 Tug'ilgunga qadar: {days_to_bd} kun\n"
             f"♈ Burjingiz: {get_zodiac(bd.day, bd.month)}\n"
             f"🐯 Muchalingiz: {get_muchal(bd.year)}"
