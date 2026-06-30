@@ -1,5 +1,6 @@
 import os
 import asyncio
+import logging
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -7,11 +8,20 @@ from aiogram.enums import ChatMemberStatus
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, date
 
-# Kanal ID
+# Loggingni sozlash (xatolarni konsolda ko'rish uchun)
+logging.basicConfig(level=logging.INFO)
+
+# Tokenni tekshirish
+TOKEN = os.getenv("TOKEN")
+if not TOKEN:
+    raise ValueError("TOKEN topilmadi! Render'da Environment Variables qismiga TOKEN qo'shing.")
+
 CHANNEL_ID = "@xushboqovblog"
+
+bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# --- Yordamchi Funksiyalar ---
+# --- Yordamchi Funksiyalar (Avvalgidek) ---
 def is_leap(year):
     return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
 
@@ -37,9 +47,9 @@ async def is_subscribed(user_id):
     try:
         member = await bot.get_chat_member(chat_id=CHANNEL_ID, user_id=user_id)
         return member.status in [ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR]
-    except:except Exception as e:
-    print(e)
-    await message.answer("Xatolik! Sanani to'g'ri formatda kiriting (Masalan: 31.01.2010)")
+    except Exception as e:
+        logging.error(f"Obunani tekshirishda xatolik: {e}")
+        return False
 
 # --- Handlerlar ---
 @dp.message(Command("start"))
@@ -67,13 +77,11 @@ async def process_date(message: types.Message):
         bd = datetime.strptime(message.text, "%d.%m.%Y").date()
         today = date.today()
         
-        # Yoshni aniq hisoblash
         delta = relativedelta(today, bd)
         total_days = (today - bd).days
         total_weeks = total_days // 7
         total_months = delta.years * 12 + delta.months
         
-        # 29-fevral mantiqi (Keyingi tug'ilgan kun)
         if bd.month == 2 and bd.day == 29:
             next_year = today.year if is_leap(today.year) and today < date(today.year, 2, 29) else today.year + 1
             while not is_leap(next_year):
@@ -86,7 +94,6 @@ async def process_date(message: types.Message):
         
         days_to_bd = (next_bd - today).days
         
-        # Haftani aniqlash
         days_uz = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"]
         weekday = days_uz[bd.weekday()]
         
@@ -101,8 +108,9 @@ async def process_date(message: types.Message):
             f"🐯 Muchalingiz: {get_muchal(bd.year)}"
         )
         await message.answer(res)
-    except:
-        await message.answer("Xatolik! Sanani to'g'ri formatda kiriting (Masalan: 31.01.2010)")
+    except Exception as e:
+        logging.error(f"Sana hisoblashda xatolik: {e}")
+        await message.answer("Xatolik! Sanani to'g'ri formatda kiriting (Masalan: 31.01.2010).")
 
 async def main():
     await dp.start_polling(bot)
