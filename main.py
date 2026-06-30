@@ -1,6 +1,6 @@
-import os
 import asyncio
 import logging
+
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -8,14 +8,12 @@ from aiogram.enums import ChatMemberStatus
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 
+from config import BOT_TOKEN, CHANNEL_ID, INSTAGRAM_URL
+
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = os.getenv("TOKEN")
-CHANNEL_ID = "@xushboqovblog"
-
-bot = Bot(token=TOKEN)
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
-
 # --- Yordamchi funksiyalar ---
 def get_muchal(year):
     muchallar = ["Sichqon", "Sigir", "Yo'lbars", "Quyon", "Ajdar", "Ilon", "Ot", "Qo'y", "Maymun", "Tovuq", "It", "To'ng'iz"]
