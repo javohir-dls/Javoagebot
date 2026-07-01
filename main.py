@@ -1,23 +1,26 @@
+import os
 import asyncio
 import logging
+from aiohttp import web
 from datetime import datetime, date
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.enums import ChatMemberStatus
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from dateutil.relativedelta import relativedelta
 
-# config.py faylidan import qilamiz
-from config import TOKEN, CHANNEL_ID
+from config import TOKEN, CHANNEL_ID, RENDER_URL
 
-# Logging
 logging.basicConfig(level=logging.INFO)
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# --- Yordamchi Funksiyalar ---
+WEBHOOK_PATH = f"/bot/{TOKEN}"
+WEBHOOK_URL = f"{RENDER_URL.rstrip('/')}{WEBHOOK_PATH}"
+
 def get_muchal(year):
     muchallar = ["Sichqon", "Sigir", "Yo'lbars", "Quyon", "Ajdar", "Ilon", "Ot", "Qo'y", "Maymun", "Tovuq", "It", "To'ng'iz"]
     return muchallar[(year - 1900) % 12]
@@ -40,11 +43,9 @@ async def is_subscribed(user_id):
     try:
         member = await bot.get_chat_member(chat_id=CHANNEL_ID, user_id=user_id)
         return member.status in [ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR]
-    except Exception as e:
-        logging.error(f"Tekshirish xatosi: {e}")
+    except Exception:
         return False
 
-# --- Handlerlar ---
 @dp.message(Command("start"))
 async def start_cmd(message: types.Message):
     if await is_subscribed(message.from_user.id):
@@ -64,30 +65,23 @@ async def check_subs(callback: types.CallbackQuery):
     else:
         await callback.answer("Hali obuna bo'lmagansiz!", show_alert=True)
 
-# Yangilangan handler (aiogram 3.29+ uslubida)
 @dp.message(F.text.regexp(r"^\d{2}\.\d{2}\.\d{4}$"))
 async def process_date(message: types.Message):
     try:
         bd = datetime.strptime(message.text, "%d.%m.%Y").date()
         today = date.today()
-        
         delta = relativedelta(today, bd)
-        
-        # 29-fevral uchun xavfsiz logic
         try:
             next_bd = bd.replace(year=today.year)
         except ValueError:
             next_bd = date(today.year, 3, 1)
-            
         if next_bd < today:
             try:
                 next_bd = bd.replace(year=today.year + 1)
             except ValueError:
                 next_bd = date(today.year + 1, 3, 1)
-        
         days_to_bd = (next_bd - today).days
         days_uz = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"]
-        
         res = (
             f"👤 Ism: {message.from_user.full_name}\n"
             f"🎂 Tug'ilgan sana: {message.text}\n"
@@ -98,13 +92,39 @@ async def process_date(message: types.Message):
             f"🐯 Muchalingiz: {get_muchal(bd.year)}"
         )
         await message.answer(res)
-    except Exception as e:
-        logging.error(f"Xatolik: {e}")
+    except Exception:
         await message.answer("Xatolik! Sanani to'g'ri formatda kiriting (Masalan: 31.01.2010).")
 
-async def main():
+async def on_startup(bot: Bot):
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    await bot.set_webhook(WEBHOOK_URL)
+
+async def on_shutdown(bot: Bot):
+    await bot.delete_webhook()
+
+async def main():
+    dp.startup.register(on_startup)
+    dp.shutdown.register(on_shutdown)
+    
+    app = web.Application()
+    
+    SimpleRequestHandler(
+        dispatcher=dp,
+        bot=bot
+    ).register(app, path=WEBHOOK_PATH)
+    
+    setup_application(app, dp, bot=bot)
+    
+    async def health(request):
+        return web.Response(text="Bot ishlayapti!")
+    
+    app.router.add_get("/", health)
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', int(os.getenv("PORT", 8080)))
+    await site.start()
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
     asyncio.run(main())
