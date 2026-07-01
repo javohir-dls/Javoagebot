@@ -71,6 +71,11 @@ async def process_date(message: types.Message):
         bd = datetime.strptime(message.text, "%d.%m.%Y").date()
         today = date.today()
         delta = relativedelta(today, bd)
+        
+        total_days = (today - bd).days
+        total_weeks = total_days // 7
+        total_months = delta.years * 12 + delta.months
+        
         try:
             next_bd = bd.replace(year=today.year)
         except ValueError:
@@ -80,12 +85,17 @@ async def process_date(message: types.Message):
                 next_bd = bd.replace(year=today.year + 1)
             except ValueError:
                 next_bd = date(today.year + 1, 3, 1)
+        
         days_to_bd = (next_bd - today).days
         days_uz = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"]
+        
         res = (
             f"👤 Ism: {message.from_user.full_name}\n"
-            f"🎂 Tug'ilgan sana: {message.text}\n"
+            f"🎂 Tug'ilgan sana: {message.text}\n\n"
             f"📅 Yoshingiz: {delta.years} yil, {delta.months} oy, {delta.days} kun\n"
+            f"📆 Jami yashagan kun: {total_days:,} kun\n"
+            f"🗓 Jami yashagan hafta: {total_weeks:,} hafta\n"
+            f"📅 Jami yashagan oy: {total_months:,} oy\n\n"
             f"🗓 Tug'ilgan kun haftasi: {days_uz[bd.weekday()]}\n"
             f"🎉 Tug'ilgunga qadar: {days_to_bd} kun\n"
             f"♈ Burjingiz: {get_zodiac(bd.day, bd.month)}\n"
@@ -105,21 +115,14 @@ async def on_shutdown(bot: Bot):
 async def main():
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
-    
     app = web.Application()
-    
-    SimpleRequestHandler(
-        dispatcher=dp,
-        bot=bot
-    ).register(app, path=WEBHOOK_PATH)
-    
+    SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
     
     async def health(request):
         return web.Response(text="Bot ishlayapti!")
     
     app.router.add_get("/", health)
-    
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', int(os.getenv("PORT", 8080)))
