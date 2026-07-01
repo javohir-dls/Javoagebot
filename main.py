@@ -27,12 +27,18 @@ def get_muchal(year):
 
 def get_zodiac(day, month):
     zodiacs = [
-        ((1, 20), (2, 18), "Dalv (Qovg'a)"), ((2, 19), (3, 20), "Hut (Baliq)"),
-        ((3, 21), (4, 19), "Hamal (Qo'y)"), ((4, 20), (5, 20), "Savr (Buzoq)"),
-        ((5, 21), (6, 20), "Javzo (Egizaklar)"), ((6, 21), (7, 22), "Saraton (Qisqichbaqa)"),
-        ((7, 23), (8, 22), "Asad (Arslon)"), ((8, 23), (9, 22), "Sunbula (Parizod)"),
-        ((9, 23), (10, 22), "Mezon (Tarozi)"), ((10, 23), (11, 21), "Aqrab (Chayon)"),
-        ((11, 22), (12, 21), "Qavs (O'qotar)"), ((12, 22), (1, 19), "Jadi (Tog' echkisi)")
+        ((3, 21), (4, 19), "Hamal (Qo'y)"),
+        ((4, 20), (5, 20), "Savr (Buzoq)"),
+        ((5, 21), (6, 20), "Javzo (Egizaklar)"),
+        ((6, 21), (7, 22), "Saraton (Qisqichbaqa)"),
+        ((7, 23), (8, 22), "Asad (Arslon)"),
+        ((8, 23), (9, 22), "Sunbula (Parizod/Boshoq)"),
+        ((9, 23), (10, 22), "Mezon (Tarozi)"),
+        ((10, 23), (11, 21), "Aqrab (Chayon)"),
+        ((11, 22), (12, 21), "Qavs (O'qotar)"),
+        ((12, 22), (1, 19), "Jadi (Tog' echkisi)"),
+        ((1, 20), (2, 18), "Dalv (Qovg'a)"),
+        ((2, 19), (3, 20), "Hut (Baliqlar)")
     ]
     for start, end, name in zodiacs:
         if (month == start[0] and day >= start[1]) or (month == end[0] and day <= end[1]):
